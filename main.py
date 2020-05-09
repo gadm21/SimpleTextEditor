@@ -12,12 +12,16 @@ from PyQt5 import QtPrintSupport
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt
 
+from ext import *
+
 class Main(QtWidgets.QMainWindow):
 
-    def __init__(self, parent = None):
+    def __init__(self,parent=None):
         QtWidgets.QMainWindow.__init__(self,parent)
 
         self.filename = ""
+
+        self.changesSaved = True
 
         self.initUI()
 
@@ -48,6 +52,11 @@ class Main(QtWidgets.QMainWindow):
         self.previewAction.setShortcut("Ctrl+Shift+P")
         self.previewAction.triggered.connect(self.preview)
 
+        self.findAction = QtWidgets.QAction(QtGui.QIcon("icons/find.png"),"Find and replace",self)
+        self.findAction.setStatusTip("Find and replace words in your document")
+        self.findAction.setShortcut("Ctrl+F")
+        self.findAction.triggered.connect(find.Find(self).show)
+
         self.cutAction = QtWidgets.QAction(QtGui.QIcon("icons/cut.png"),"Cut to clipboard",self)
         self.cutAction.setStatusTip("Delete and copy text to clipboard")
         self.cutAction.setShortcut("Ctrl+X")
@@ -72,6 +81,26 @@ class Main(QtWidgets.QMainWindow):
         self.redoAction.setStatusTip("Redo last undone thing")
         self.redoAction.setShortcut("Ctrl+Y")
         self.redoAction.triggered.connect(self.text.redo)
+
+        dateTimeAction = QtWidgets.QAction(QtGui.QIcon("icons/calender.png"),"Insert current date/time",self)
+        dateTimeAction.setStatusTip("Insert current date/time")
+        dateTimeAction.setShortcut("Ctrl+D")
+        dateTimeAction.triggered.connect(datetime.DateTime(self).show)
+
+        wordCountAction = QtWidgets.QAction(QtGui.QIcon("icons/count.png"),"See word/symbol count",self)
+        wordCountAction.setStatusTip("See word/symbol count")
+        wordCountAction.setShortcut("Ctrl+W")
+        wordCountAction.triggered.connect(self.wordCount)
+
+        tableAction = QtWidgets.QAction(QtGui.QIcon("icons/table.png"),"Insert table",self)
+        tableAction.setStatusTip("Insert table")
+        tableAction.setShortcut("Ctrl+T")
+        tableAction.triggered.connect(table.Table(self).show)
+
+        imageAction = QtWidgets.QAction(QtGui.QIcon("icons/image.png"),"Insert image",self)
+        imageAction.setStatusTip("Insert image")
+        imageAction.setShortcut("Ctrl+Shift+I")
+        imageAction.triggered.connect(self.insertImage)
 
         bulletAction = QtWidgets.QAction(QtGui.QIcon("icons/bullet.png"),"Insert bullet List",self)
         bulletAction.setStatusTip("Insert bullet list")
@@ -104,14 +133,21 @@ class Main(QtWidgets.QMainWindow):
 
         self.toolbar.addSeparator()
 
+        self.toolbar.addAction(self.findAction)
+        self.toolbar.addAction(dateTimeAction)
+        self.toolbar.addAction(wordCountAction)
+        self.toolbar.addAction(tableAction)
+        self.toolbar.addAction(imageAction)
+
+        self.toolbar.addSeparator()
+
         self.toolbar.addAction(bulletAction)
         self.toolbar.addAction(numberedAction)
 
-        # Makes the next toolbar appear underneath this one
         self.addToolBarBreak()
 
     def initFormatbar(self):
-        
+
         fontBox = QtWidgets.QFontComboBox(self)
         fontBox.currentFontChanged.connect(lambda font: self.text.setCurrentFont(font))
 
@@ -126,9 +162,6 @@ class Main(QtWidgets.QMainWindow):
 
         fontColor = QtWidgets.QAction(QtGui.QIcon("icons/font-color.png"),"Change font color",self)
         fontColor.triggered.connect(self.fontColorChanged)
-
-        backColor = QtWidgets.QAction(QtGui.QIcon("icons/highlight.png"),"Change background color",self)
-        backColor.triggered.connect(self.highlight)
 
         boldAction = QtWidgets.QAction(QtGui.QIcon("icons/bold.png"),"Bold",self)
         boldAction.triggered.connect(self.bold)
@@ -168,6 +201,9 @@ class Main(QtWidgets.QMainWindow):
         dedentAction.setShortcut("Shift+Tab")
         dedentAction.triggered.connect(self.dedent)
 
+        backColor = QtWidgets.QAction(QtGui.QIcon("icons/highlight.png"),"Change background color",self)
+        backColor.triggered.connect(self.highlight)
+
         self.formatbar = self.addToolBar("Format")
 
         self.formatbar.addWidget(fontBox)
@@ -199,52 +235,54 @@ class Main(QtWidgets.QMainWindow):
         self.formatbar.addAction(indentAction)
         self.formatbar.addAction(dedentAction)
 
-
     def initMenubar(self):
 
-      menubar = self.menuBar()
+        menubar = self.menuBar()
 
-      file = menubar.addMenu("File")
-      edit = menubar.addMenu("Edit")
-      view = menubar.addMenu("View")
+        file = menubar.addMenu("File")
+        edit = menubar.addMenu("Edit")
+        view = menubar.addMenu("View")
 
-      file.addAction(self.newAction)
-      file.addAction(self.openAction)
-      file.addAction(self.saveAction)
-      file.addAction(self.printAction)
-      file.addAction(self.previewAction)
+        # Add the most important actions to the menubar
 
-      edit.addAction(self.undoAction)
-      edit.addAction(self.redoAction)
-      edit.addAction(self.cutAction)
-      edit.addAction(self.copyAction)
-      edit.addAction(self.pasteAction)
+        file.addAction(self.newAction)
+        file.addAction(self.openAction)
+        file.addAction(self.saveAction)
+        file.addAction(self.printAction)
+        file.addAction(self.previewAction)
 
-      # Toggling actions for the various bars
-      toolbarAction = QtWidgets.QAction("Toggle Toolbar",self)
-      toolbarAction.triggered.connect(self.toggleToolbar)
+        edit.addAction(self.undoAction)
+        edit.addAction(self.redoAction)
+        edit.addAction(self.cutAction)
+        edit.addAction(self.copyAction)
+        edit.addAction(self.pasteAction)
+        edit.addAction(self.findAction)
 
-      formatbarAction = QtWidgets.QAction("Toggle Formatbar",self)
-      formatbarAction.triggered.connect(self.toggleFormatbar)
+        # Toggling actions for the various bars
+        toolbarAction = QtWidgets.QAction("Toggle Toolbar",self)
+        toolbarAction.triggered.connect(self.toggleToolbar)
 
-      statusbarAction = QtWidgets.QAction("Toggle Statusbar",self)
-      statusbarAction.triggered.connect(self.toggleStatusbar)
+        formatbarAction = QtWidgets.QAction("Toggle Formatbar",self)
+        formatbarAction.triggered.connect(self.toggleFormatbar)
 
-      view.addAction(toolbarAction)
-      view.addAction(formatbarAction)
-      view.addAction(statusbarAction)
+        statusbarAction = QtWidgets.QAction("Toggle Statusbar",self)
+        statusbarAction.triggered.connect(self.toggleStatusbar)
+
+        view.addAction(toolbarAction)
+        view.addAction(formatbarAction)
+        view.addAction(statusbarAction)
 
     def initUI(self):
 
         self.text = QtWidgets.QTextEdit(self)
 
+        # Set the tab stop width to around 33 pixels which is
+        # more or less 8 spaces
+        self.text.setTabStopWidth(33)
+
         self.initToolbar()
         self.initFormatbar()
         self.initMenubar()
-
-        # Set the tab stop width to around 33 pixels which is
-        # about 8 spaces
-        self.text.setTabStopWidth(33)
 
         self.setCentralWidget(self.text)
 
@@ -255,12 +293,212 @@ class Main(QtWidgets.QMainWindow):
         # the line and column number
         self.text.cursorPositionChanged.connect(self.cursorPosition)
 
-        # x and y coordinates on the screen, width, height
+        # We need our own context menu for tables
+        self.text.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.text.customContextMenuRequested.connect(self.context)
+
+        self.text.textChanged.connect(self.changed)
+
         self.setGeometry(100,100,1030,800)
-
         self.setWindowTitle("Writer")
-
         self.setWindowIcon(QtGui.QIcon("icons/icon.png"))
+
+    def changed(self):
+        self.changesSaved = False
+
+    def closeEvent(self,event):
+
+        if self.changesSaved:
+
+            event.accept()
+
+        else:
+        
+            popup = QtWidgets.QMessageBox(self)
+
+            popup.setIcon(QtWidgets.QMessageBox.Warning)
+            
+            popup.setText("The document has been modified")
+            
+            popup.setInformativeText("Do you want to save your changes?")
+            
+            popup.setStandardButtons(QtWidgets.QMessageBox.Save   |
+                                      QtWidgets.QMessageBox.Cancel |
+                                      QtWidgets.QMessageBox.Discard)
+            
+            popup.setDefaultButton(QtWidgets.QMessageBox.Save)
+
+            answer = popup.exec_()
+
+            if answer == QtWidgets.QMessageBox.Save:
+                self.save()
+
+            elif answer == QtWidgets.QMessageBox.Discard:
+                event.accept()
+
+            else:
+                event.ignore()
+
+    def context(self,pos):
+
+        # Grab the cursor
+        cursor = self.text.textCursor()
+
+        # Grab the current table, if there is one
+        table = cursor.currentTable()
+
+        # Above will return 0 if there is no current table, in which case
+        # we call the normal context menu. If there is a table, we create
+        # our own context menu specific to table interaction
+        if table:
+
+            menu = QtGui.QMenu(self)
+
+            appendRowAction = QtWidgets.QAction("Append row",self)
+            appendRowAction.triggered.connect(lambda: table.appendRows(1))
+
+            appendColAction = QtWidgets.QAction("Append column",self)
+            appendColAction.triggered.connect(lambda: table.appendColumns(1))
+
+
+            removeRowAction = QtWidgets.QAction("Remove row",self)
+            removeRowAction.triggered.connect(self.removeRow)
+
+            removeColAction = QtWidgets.QAction("Remove column",self)
+            removeColAction.triggered.connect(self.removeCol)
+
+
+            insertRowAction = QtWidgets.QAction("Insert row",self)
+            insertRowAction.triggered.connect(self.insertRow)
+
+            insertColAction = QtWidgets.QAction("Insert column",self)
+            insertColAction.triggered.connect(self.insertCol)
+
+
+            mergeAction = QtWidgets.QAction("Merge cells",self)
+            mergeAction.triggered.connect(lambda: table.mergeCells(cursor))
+
+            # Only allow merging if there is a selection
+            if not cursor.hasSelection():
+                mergeAction.setEnabled(False)
+
+
+            splitAction = QtWidgets.QAction("Split cells",self)
+
+            cell = table.cellAt(cursor)
+
+            # Only allow splitting if the current cell is larger
+            # than a normal cell
+            if cell.rowSpan() > 1 or cell.columnSpan() > 1:
+
+                splitAction.triggered.connect(lambda: table.splitCell(cell.row(),cell.column(),1,1))
+
+            else:
+                splitAction.setEnabled(False)
+
+
+            menu.addAction(appendRowAction)
+            menu.addAction(appendColAction)
+
+            menu.addSeparator()
+
+            menu.addAction(removeRowAction)
+            menu.addAction(removeColAction)
+
+            menu.addSeparator()
+
+            menu.addAction(insertRowAction)
+            menu.addAction(insertColAction)
+
+            menu.addSeparator()
+
+            menu.addAction(mergeAction)
+            menu.addAction(splitAction)
+
+            # Convert the widget coordinates into global coordinates
+            pos = self.mapToGlobal(pos)
+
+            # Add pixels for the tool and formatbars, which are not included
+            # in mapToGlobal(), but only if the two are currently visible and
+            # not toggled by the user
+
+            if self.toolbar.isVisible():
+                pos.setY(pos.y() + 45)
+
+            if self.formatbar.isVisible():
+                pos.setY(pos.y() + 45)
+                
+            # Move the menu to the new position
+            menu.move(pos)
+
+            menu.show()
+
+        else:
+
+            event = QtGui.QContextMenuEvent(QtGui.QContextMenuEvent.Mouse,QtCore.QPoint())
+
+            self.text.contextMenuEvent(event)
+
+    def removeRow(self):
+
+        # Grab the cursor
+        cursor = self.text.textCursor()
+
+        # Grab the current table (we assume there is one, since
+        # this is checked before calling)
+        table = cursor.currentTable()
+
+        # Get the current cell
+        cell = table.cellAt(cursor)
+
+        # Delete the cell's row
+        table.removeRows(cell.row(),1)
+
+    def removeCol(self):
+
+        # Grab the cursor
+        cursor = self.text.textCursor()
+
+        # Grab the current table (we assume there is one, since
+        # this is checked before calling)
+        table = cursor.currentTable()
+
+        # Get the current cell
+        cell = table.cellAt(cursor)
+
+        # Delete the cell's column
+        table.removeColumns(cell.column(),1)
+
+    def insertRow(self):
+
+        # Grab the cursor
+        cursor = self.text.textCursor()
+
+        # Grab the current table (we assume there is one, since
+        # this is checked before calling)
+        table = cursor.currentTable()
+
+        # Get the current cell
+        cell = table.cellAt(cursor)
+
+        # Insert a new row at the cell's position
+        table.insertRows(cell.row(),1)
+
+    def insertCol(self):
+
+        # Grab the cursor
+        cursor = self.text.textCursor()
+
+        # Grab the current table (we assume there is one, since
+        # this is checked before calling)
+        table = cursor.currentTable()
+
+        # Get the current cell
+        cell = table.cellAt(cursor)
+
+        # Insert a new row at the cell's position
+        table.insertColumns(cell.column(),1)
+
 
     def toggleToolbar(self):
 
@@ -285,7 +523,8 @@ class Main(QtWidgets.QMainWindow):
 
     def new(self):
 
-        spawn = Main(self)
+        spawn = Main()
+
         spawn.show()
 
     def open(self):
@@ -306,7 +545,7 @@ class Main(QtWidgets.QMainWindow):
           self.filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File')[0]
 
         if self.filename:
-
+            
             # Append extension if not there yet
             if not self.filename.endswith(".writer"):
               self.filename += ".writer"
@@ -346,19 +585,40 @@ class Main(QtWidgets.QMainWindow):
 
         self.statusbar.showMessage("Line: {} | Column: {}".format(line,col))
 
-    def bulletList(self):
+    def wordCount(self):
 
-        cursor = self.text.textCursor()
+        wc = wordcount.WordCount(self)
 
-        # Insert bulleted list
-        cursor.insertList(QtGui.QTextListFormat.ListDisc)
+        wc.getText()
 
-    def numberList(self):
+        wc.show()
 
-        cursor = self.text.textCursor()
+    def insertImage(self):
 
-        # Insert list with numbers
-        cursor.insertList(QtGui.QTextListFormat.ListDecimal)
+        # Get image file name
+        #PYQT5 Returns a tuple in PyQt5
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Insert image',".","Images (*.png *.xpm *.jpg *.bmp *.gif)")[0]
+
+        if filename:
+            
+            # Create image object
+            image = QtGui.QImage(filename)
+
+            # Error if unloadable
+            if image.isNull():
+
+                popup = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Critical,
+                                          "Image load error",
+                                          "Could not load image file!",
+                                          QtWidgets.QMessageBox.Ok,
+                                          self)
+                popup.show()
+
+            else:
+
+                cursor = self.text.textCursor()
+
+                cursor.insertImage(image,filename)
 
     def fontColorChanged(self):
 
@@ -544,8 +804,22 @@ class Main(QtWidgets.QMainWindow):
         else:
             self.handleDedent(cursor)
 
-def main():
 
+    def bulletList(self):
+
+        cursor = self.text.textCursor()
+
+        # Insert bulleted list
+        cursor.insertList(QtGui.QTextListFormat.ListDisc)
+
+    def numberList(self):
+
+        cursor = self.text.textCursor()
+
+        # Insert list with numbers
+        cursor.insertList(QtGui.QTextListFormat.ListDecimal)
+
+def main():
     app = QtWidgets.QApplication(sys.argv)
 
     main = Main()
@@ -555,15 +829,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
