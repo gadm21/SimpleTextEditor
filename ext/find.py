@@ -26,6 +26,7 @@ class Find(QtWidgets.QDialog):
         findButton = QtWidgets.QPushButton("Find",self)
         findButton.clicked.connect(self.find)
 
+        '''
         # Button to replace the last finding
         replaceButton = QtWidgets.QPushButton("Replace",self)
         replaceButton.clicked.connect(self.replace)
@@ -33,6 +34,7 @@ class Find(QtWidgets.QDialog):
         # Button to remove all findings
         allButton = QtWidgets.QPushButton("Replace all",self)
         allButton.clicked.connect(self.replaceAll)
+        '''
 
         # Normal mode - radio button
         self.normalRadio = QtWidgets.QRadioButton("Normal",self)
@@ -43,25 +45,26 @@ class Find(QtWidgets.QDialog):
         # The field into which to type the query
         self.findField = QtWidgets.QTextEdit(self)
         self.findField.resize(250,50)
-
+        self.findField.setFontPointSize(12)
+        '''
         # The field into which to type the text to replace the
         # queried text
         self.replaceField = QtWidgets.QTextEdit(self)
-        self.replaceField.resize(250,50)
-        
+        self.replaceField.resize(100,30)
+        '''
         layout = QtWidgets.QGridLayout()
 
         layout.addWidget(self.findField,1,0,1,4)
         layout.addWidget(self.normalRadio,2,2)
         layout.addWidget(regexRadio,2,3)
         layout.addWidget(findButton,2,0,1,2)
-        
+        '''
         layout.addWidget(self.replaceField,3,0,1,4)
         layout.addWidget(replaceButton,4,0,1,2)
         layout.addWidget(allButton,4,2,1,2)
-
-        self.setGeometry(300,300,360,250)
-        self.setWindowTitle("Find and Replace")
+        '''
+        self.setGeometry(300,300,300,100)
+        self.setWindowTitle("FIND")
         self.setLayout(layout)
 
         # By default the normal mode is activated
@@ -71,7 +74,7 @@ class Find(QtWidgets.QDialog):
 
         # Grab the parent's text
         text = self.parent.text.toPlainText()
-
+        
         # And the text to find
         query = self.findField.toPlainText()
 

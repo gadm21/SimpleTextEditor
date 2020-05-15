@@ -26,7 +26,7 @@ class Main(QtWidgets.QMainWindow):
         self.initUI()
 
     def initToolbar(self):
-
+        '''
         self.newAction = QtWidgets.QAction(QtGui.QIcon("icons/new.png"),"New",self)
         self.newAction.setShortcut("Ctrl+N")
         self.newAction.setStatusTip("Create a new document from scratch.")
@@ -51,12 +51,12 @@ class Main(QtWidgets.QMainWindow):
         self.previewAction.setStatusTip("Preview page before printing")
         self.previewAction.setShortcut("Ctrl+Shift+P")
         self.previewAction.triggered.connect(self.preview)
-
+        '''
         self.findAction = QtWidgets.QAction(QtGui.QIcon("icons/find.png"),"Find and replace",self)
         self.findAction.setStatusTip("Find and replace words in your document")
         self.findAction.setShortcut("Ctrl+F")
         self.findAction.triggered.connect(find.Find(self).show)
-
+        '''
         self.cutAction = QtWidgets.QAction(QtGui.QIcon("icons/cut.png"),"Cut to clipboard",self)
         self.cutAction.setStatusTip("Delete and copy text to clipboard")
         self.cutAction.setShortcut("Ctrl+X")
@@ -111,9 +111,9 @@ class Main(QtWidgets.QMainWindow):
         numberedAction.setStatusTip("Insert numbered list")
         numberedAction.setShortcut("Ctrl+Shift+L")
         numberedAction.triggered.connect(self.numberList)
-
+        '''
         self.toolbar = self.addToolBar("Options")
-
+        '''
         self.toolbar.addAction(self.newAction)
         self.toolbar.addAction(self.openAction)
         self.toolbar.addAction(self.saveAction)
@@ -132,8 +132,9 @@ class Main(QtWidgets.QMainWindow):
         self.toolbar.addAction(self.redoAction)
 
         self.toolbar.addSeparator()
-
+        '''
         self.toolbar.addAction(self.findAction)
+        '''
         self.toolbar.addAction(dateTimeAction)
         self.toolbar.addAction(wordCountAction)
         self.toolbar.addAction(tableAction)
@@ -145,9 +146,9 @@ class Main(QtWidgets.QMainWindow):
         self.toolbar.addAction(numberedAction)
 
         self.addToolBarBreak()
-
+        '''
     def initFormatbar(self):
-
+        '''
         fontBox = QtWidgets.QFontComboBox(self)
         fontBox.currentFontChanged.connect(lambda font: self.text.setCurrentFont(font))
 
@@ -234,6 +235,7 @@ class Main(QtWidgets.QMainWindow):
 
         self.formatbar.addAction(indentAction)
         self.formatbar.addAction(dedentAction)
+        '''
 
     def initMenubar(self):
 
@@ -275,14 +277,14 @@ class Main(QtWidgets.QMainWindow):
     def initUI(self):
 
         self.text = QtWidgets.QTextEdit(self)
-
+        self.text.setFontPointSize(20) 
         # Set the tab stop width to around 33 pixels which is
         # more or less 8 spaces
         self.text.setTabStopWidth(33)
 
         self.initToolbar()
-        self.initFormatbar()
-        self.initMenubar()
+        #self.initFormatbar()
+        #self.initMenubar()
 
         self.setCentralWidget(self.text)
 
