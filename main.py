@@ -1,4 +1,5 @@
 import sys
+import re 
 
 #PYQT5 PyQt4’s QtGui module has been split into PyQt5’s QtGui, QtPrintSupport and QtWidgets modules
 
@@ -10,9 +11,10 @@ from PyQt5 import QtPrintSupport
 #PYQT5 QPrintPreviewDialog, QPrintDialog
 
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 from ext import *
+from spell_checking import SpellChecker 
 
 class Main(QtWidgets.QMainWindow):
 
@@ -22,6 +24,13 @@ class Main(QtWidgets.QMainWindow):
         self.filename = ""
 
         self.changesSaved = True
+
+        self.timer = QTimer(self) 
+        self.timer.setInterval(5000) 
+        self.timer.timeout.connect(self.periodic_check)
+        self.start_timer() 
+        self.spell_checker = SpellChecker('data/big.txt') 
+        self.checked_words = []
 
         self.initUI()
 
@@ -55,7 +64,8 @@ class Main(QtWidgets.QMainWindow):
         self.findAction = QtWidgets.QAction(QtGui.QIcon("icons/find.png"),"Find and replace",self)
         self.findAction.setStatusTip("Find and replace words in your document")
         self.findAction.setShortcut("Ctrl+F")
-        self.findAction.triggered.connect(find.Find(self).show)
+        #self.findAction.triggered.connect(find.Find(self).show)
+        self.findAction.triggered.connect(self.underline)
         '''
         self.cutAction = QtWidgets.QAction(QtGui.QIcon("icons/cut.png"),"Cut to clipboard",self)
         self.cutAction.setStatusTip("Delete and copy text to clipboard")
@@ -273,6 +283,20 @@ class Main(QtWidgets.QMainWindow):
         view.addAction(toolbarAction)
         view.addAction(formatbarAction)
         view.addAction(statusbarAction)
+
+    def clean_checked_words(self):
+        #clean checked_words list when it exceeds 1000 words 
+        pass 
+    
+    def periodic_check(self):
+        words = re.findall('[a-z]+', self.text.toPlainText())
+
+    
+    def start_timer(self):
+        self.timer.start() 
+    
+    def stop_timer(self):
+        self.timer.stop() 
 
     def initUI(self):
 
@@ -578,7 +602,7 @@ class Main(QtWidgets.QMainWindow):
             self.text.document().print_(dialog.printer())
 
     def cursorPosition(self):
-
+        
         cursor = self.text.textCursor()
 
         # Mortals like 1-indexed things
