@@ -47,7 +47,8 @@ class SpellChecker(object):
     def suggestions(self, word ) : 
         return self.variants1(word) & self.real_words or \
                self.variants2(word) & self.real_words or \
-               self.vowel_swaps(word) & self.real_words 
+               self.vowel_swaps(word) & self.real_words or \
+               {word} 
 
     def check(self, word) :
         if word in self.real_words :

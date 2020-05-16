@@ -289,7 +289,18 @@ class Main(QtWidgets.QMainWindow):
         pass 
     
     def periodic_check(self):
+        print("periodic check")
         words = re.findall('[a-z]+', self.text.toPlainText())
+        current_pos = self.text.textCursor() 
+        new_text = ""
+        for word in words : 
+            flag, suggestions= self.spell_checker.check(word) 
+            suggestions = list(suggestions) 
+            if flag : new_text += word + " "
+            else : new_text += suggestions[0]
+        self.text.setFontPointSize(20) 
+        self.text.setText(new_text) 
+        self.text.setTextCursor(current_pos) 
 
     
     def start_timer(self):
