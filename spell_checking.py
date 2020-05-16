@@ -42,12 +42,11 @@ class SpellChecker(object):
 
     def variants2(self, word):
         """get variants for the variants for a word"""
-        return set(s for w in variants(word) for s in variants(w))
+        return set(s for w in self.variants1(word) for s in self.variants1(w))
 
     def suggestions(self, word ) : 
         return self.variants1(word) & self.real_words or \
                self.variants2(word) & self.real_words or \
-               self.vowel_swaps(word) & self.real_words or \
                {word} 
 
     def check(self, word) :

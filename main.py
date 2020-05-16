@@ -26,7 +26,7 @@ class Main(QtWidgets.QMainWindow):
         self.changesSaved = True
 
         self.timer = QTimer(self) 
-        self.timer.setInterval(5000) 
+        self.timer.setInterval(3000) 
         self.timer.timeout.connect(self.periodic_check)
         self.start_timer() 
         self.spell_checker = SpellChecker('data/big.txt') 
@@ -64,8 +64,8 @@ class Main(QtWidgets.QMainWindow):
         self.findAction = QtWidgets.QAction(QtGui.QIcon("icons/find.png"),"Find and replace",self)
         self.findAction.setStatusTip("Find and replace words in your document")
         self.findAction.setShortcut("Ctrl+F")
-        #self.findAction.triggered.connect(find.Find(self).show)
-        self.findAction.triggered.connect(self.underline)
+        self.findAction.triggered.connect(find.Find(self).show)
+        
         '''
         self.cutAction = QtWidgets.QAction(QtGui.QIcon("icons/cut.png"),"Cut to clipboard",self)
         self.cutAction.setStatusTip("Delete and copy text to clipboard")
@@ -289,19 +289,46 @@ class Main(QtWidgets.QMainWindow):
         pass 
     
     def periodic_check(self):
-        print("periodic check")
-        words = re.findall('[a-z]+', self.text.toPlainText())
-        current_pos = self.text.textCursor() 
-        new_text = ""
-        for word in words : 
+        
+        old_cursor = self.text.textCursor()
+        current_pos = 0
+        wrong_words_positions = [] 
+        txt = self.text.toPlainText() 
+
+        words = re.findall('\S+', self.text.toPlainText())
+        for word_index in range(len(words) -1) : 
+            word = words[word_index] 
+            if word in self.checked_words : 
+                current_pos += len(word) + 1
+                continue 
+                
             flag, suggestions= self.spell_checker.check(word) 
             suggestions = list(suggestions) 
-            if flag : new_text += word + " "
-            else : new_text += suggestions[0]
-        self.text.setFontPointSize(20) 
-        self.text.setText(new_text) 
-        self.text.setTextCursor(current_pos) 
+            if not flag :
+                print("{} is wrong".format(word))
+                wrong_words_positions.append((current_pos, len(word)))
+            self.checked_words.append(word)     
+            current_pos += len(word) + 1
+            
+        self.select(wrong_words_positions) 
+        
+        self.text.setTextCursor(old_cursor) 
+        
 
+    def select(self, word_positions) :
+        cursor = self.text.textCursor()
+        print("block:", cursor.blockNumber(), " col:", cursor.columnNumber())
+        for pos_start, word_len in word_positions : 
+            cursor.setPosition(pos_start+ cursor.blockNumber()) 
+            cursor.setPosition(pos_start+word_len+cursor.blockNumber(), QtGui.QTextCursor.KeepAnchor) 
+            self.text.setTextCursor(cursor) 
+            self.highlight()
+            #self.hard_underline() 
+            #self.hard_underline() 
+        
+    
+    def hard_underline(self):
+        self.text.setFontUnderline(True) 
     
     def start_timer(self):
         self.timer.start() 
@@ -341,6 +368,7 @@ class Main(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon("icons/icon.png"))
 
     def changed(self):
+        if len(self.text.toPlainText())==0 : self.text.setFontPointSize(20)
         self.changesSaved = False
 
     def closeEvent(self,event):
@@ -667,9 +695,9 @@ class Main(QtWidgets.QMainWindow):
 
     def highlight(self):
 
-        color = QtWidgets.QColorDialog.getColor()
+        #color = QtWidgets.QColorDialog.getColor()
 
-        self.text.setTextBackgroundColor(color)
+        self.text.setTextBackgroundColor(QtCore.Qt.red)
 
     def bold(self):
 
@@ -690,7 +718,7 @@ class Main(QtWidgets.QMainWindow):
     def underline(self):
 
         state = self.text.fontUnderline()
-
+        
         self.text.setFontUnderline(not state)
 
     def strike(self):
