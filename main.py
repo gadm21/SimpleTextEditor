@@ -404,6 +404,15 @@ class Main(QtWidgets.QMainWindow):
             else:
                 event.ignore()
 
+    def contextMenuEvent(self, event):
+        contextMenu = QtGui.QMenu(self)
+        newAct = contextMenu.addAction("New")
+        openAct = contextMenu.addAction("Open")
+        quitAct = contextMenu.addAction("Quit")
+        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+        if action == quitAct:
+            self.close()
+        
     def context(self,pos):
 
         # Grab the cursor
