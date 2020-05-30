@@ -23,6 +23,9 @@ class Main(QtWidgets.QMainWindow):
 
         self.filename = ""
 
+        self.line = 0 
+        self.col = 0 
+
         self.changesSaved = True
 
         self.timer = QTimer(self) 
@@ -404,6 +407,7 @@ class Main(QtWidgets.QMainWindow):
             else:
                 event.ignore()
 
+    '''
     def contextMenuEvent(self, event):
         contextMenu = QtWidgets.QMenu(self)
         newAct = contextMenu.addAction("New")
@@ -413,9 +417,12 @@ class Main(QtWidgets.QMainWindow):
         action = contextMenu.exec_(self.mapToGlobal(event.pos()))
         if action == quitAct:
             self.close()
-    
+    '''
     def no(self):
-        print("no") 
+        print("line:", self.line) 
+        print("col:", self.col) 
+        print("pos x:", QtGui.QCursor.pos().x())
+        print("pos y:", QtGui.QCursor.pos().y())
 
     def context(self,pos):
         self._normalMenu = QtWidgets.QMenu(self.text)
@@ -570,6 +577,9 @@ class Main(QtWidgets.QMainWindow):
         # Mortals like 1-indexed things
         line = cursor.blockNumber() + 1
         col = cursor.columnNumber()
+
+        self.line = line 
+        self.col = col 
 
         self.statusbar.showMessage("Line: {} | Column: {}".format(line,col))
 
