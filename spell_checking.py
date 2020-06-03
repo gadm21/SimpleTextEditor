@@ -62,12 +62,14 @@ if __name__ == "__main__":
     
     spell_checker = SpellChecker('data/big.txt') 
     
-    test = ['hi', 'monster', 'gad', 'minster', 'try', 'gad'] 
+    word = 'NLP'
 
-    for word in test : 
-        flag, suggestions = spell_checker.check(word) 
-        if flag : 
-            print("word {} is correct".format(word))
-        else :
-            print("word {} is not correct. suggestions are:{}".format(word, suggestions))
-            spell_checker.add_word(word) 
+    variants1 = spell_checker.variants1(word)
+    variants2 = spell_checker.variants2(word) 
+    flag, suggesions = spell_checker.check(word)
+
+    print('number of edit 1 distance variants is {} \n they are {} \n\n'.format(len(variants1), list(variants1)[:50]))
+    print('number of edit 1 distance variants is {} \n they are {} \n\n'.format(len(variants2), list(variants2)[:50]))
+    
+    print("flag:", flag)
+    print("number of suggesions {}, they are {}".format(len(suggesions), suggesions))

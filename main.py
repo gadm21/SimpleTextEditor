@@ -310,6 +310,7 @@ class Main(QtWidgets.QMainWindow):
             if not flag :
                 print("{} is wrong".format(word))
                 wrong_words_positions.append((current_pos, len(word)))
+                print('wrong word current pos:{}'.format(current_pos))
             self.checked_words.append(word)     
             current_pos += len(word) + 1
             
@@ -322,8 +323,8 @@ class Main(QtWidgets.QMainWindow):
         cursor = self.text.textCursor()
         
         for pos_start, word_len in word_positions : 
-            cursor.setPosition(pos_start+ cursor.blockNumber()) 
-            cursor.setPosition(pos_start+word_len+cursor.blockNumber(), QtGui.QTextCursor.KeepAnchor) 
+            cursor.setPosition(pos_start)
+            cursor.setPosition(pos_start+word_len, QtGui.QTextCursor.KeepAnchor) 
             self.text.setTextCursor(cursor) 
             self.highlight()
             #self.hard_underline() 
@@ -419,11 +420,18 @@ class Main(QtWidgets.QMainWindow):
             self.close()
     '''
     def no(self):
-        print("line:", self.line) 
-        print("col:", self.col) 
-        print("pos x:", QtGui.QCursor.pos().x())
-        print("pos y:", QtGui.QCursor.pos().y())
+        cursor = self.text.textCursor()
+        temp = cursor.columnNumber()
 
+        # Move to the selection's end
+        cursor.setPosition(cursor.anchor())
+
+        # Calculate range of selection
+        diff = cursor.columnNumber() - temp
+        print("temp:{} current:{}".format(temp, cursor.columnNumber()))
+        print("line:", self.line) 
+        print("col:", self.col)     
+        print("pos :", QtGui.QCursor.pos())
     def context(self,pos):
         self._normalMenu = QtWidgets.QMenu(self.text)
         self._addCustomMenuItems(self._normalMenu)
