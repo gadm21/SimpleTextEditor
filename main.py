@@ -1,5 +1,6 @@
 import sys
 import re 
+from functools import partial
 
 #PYQT5 PyQt4’s QtGui module has been split into PyQt5’s QtGui, QtPrintSupport and QtWidgets modules
 
@@ -320,6 +321,7 @@ class Main(QtWidgets.QMainWindow):
         
 
     def select(self, word_positions) :
+        
         cursor = self.text.textCursor()
         
         for pos_start, word_len in word_positions : 
@@ -327,8 +329,6 @@ class Main(QtWidgets.QMainWindow):
             cursor.setPosition(pos_start+word_len, QtGui.QTextCursor.KeepAnchor) 
             self.text.setTextCursor(cursor) 
             self.highlight()
-            #self.hard_underline() 
-            #self.hard_underline() 
         
     
     def hard_underline(self):
@@ -408,30 +408,44 @@ class Main(QtWidgets.QMainWindow):
             else:
                 event.ignore()
 
-    '''
-    def contextMenuEvent(self, event):
-        contextMenu = QtWidgets.QMenu(self)
-        newAct = contextMenu.addAction("New")
-        openAct = contextMenu.addAction("Open")
-        quitAct = contextMenu.addAction("Quit")
-        well = contextMenu.addAction("well")
-        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-        if action == quitAct:
-            self.close()
-    '''
-    def no(self):
+    def get_position(self):
         cursor = self.text.textCursor()
-        temp = cursor.columnNumber()
+        point1 = cursor.columnNumber() 
 
-        # Move to the selection's end
-        cursor.setPosition(cursor.anchor())
+        cursor.setPosition(cursor.anchor()) 
+        point2 = cursor.columnNumber()
+        if point1 == point2 : return False, None, None 
 
-        # Calculate range of selection
-        diff = cursor.columnNumber() - temp
-        print("temp:{} current:{}".format(temp, cursor.columnNumber()))
-        print("line:", self.line) 
-        print("col:", self.col)     
-        print("pos :", QtGui.QCursor.pos())
+        start = min(point1, point2) 
+        end = max(point1, point2)         
+        return True, start, end
+
+    def get_suggessions(self, start, end):
+        word = self.text.toPlainText()[start:end] 
+        flag, suggessions = self.spell_checker.check(word) 
+
+        if flag : 
+            return True, word, None
+        else :
+            suggessions = list(suggessions)[:9]
+            return False, word, suggessions
+            
+    def correct(self, start, end, suggession):
+        self.spell_checker.add_word(suggession) 
+        text = self.text.toPlainText() 
+        text = text.replace(text[start:end], suggession) 
+        self.text.setText(text) 
+
+        self.text.selectAll()
+        self.highlight(False) 
+        self.checked_words = [] 
+        self.periodic_check() 
+        clean_cursor = self.text.textCursor()
+        clean_cursor.setPosition(end) 
+        clean_cursor.clearSelection()  
+        self.text.setTextCursor(clean_cursor) 
+        
+
     def context(self,pos):
         self._normalMenu = QtWidgets.QMenu(self.text)
         self._addCustomMenuItems(self._normalMenu)
@@ -439,7 +453,19 @@ class Main(QtWidgets.QMainWindow):
 
     def _addCustomMenuItems(self, menu) :
         menu.addSeparator()
-        menu.addAction(u'Test', self.no)
+
+        flag, start, end = self.get_position() 
+        if not flag : return
+
+        flag, word, suggessions = self.get_suggessions(start, end) 
+        if not flag :
+            menu.addAction('Add to dictionary', partial(self.correct, start, end, word))
+            menu.addSeparator()
+            for suggession in suggessions:
+                menu.addAction(suggession, partial(self.correct, start, end, suggession))
+                menu.addSeparator()
+                
+
         
 
     def removeRow(self):
@@ -599,6 +625,7 @@ class Main(QtWidgets.QMainWindow):
 
         wc.show()
 
+
     def insertImage(self):
 
         # Get image file name
@@ -634,11 +661,12 @@ class Main(QtWidgets.QMainWindow):
         # Set it as the new text color
         self.text.setTextColor(color)
 
-    def highlight(self):
+    def highlight(self, flag = True):
 
         #color = QtWidgets.QColorDialog.getColor()
 
-        self.text.setTextBackgroundColor(QtCore.Qt.red)
+        if flag :self.text.setTextBackgroundColor(QtCore.Qt.red)
+        else : self.text.setTextBackgroundColor(QtCore.Qt.white)
 
     def bold(self):
 

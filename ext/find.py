@@ -105,6 +105,7 @@ class Find(QtWidgets.QDialog):
 
             # The actual search
             match = pattern.search(text,self.lastStart + 1)
+            print("query:{} pattern:{} match:{}".format(query, pattern, match)) 
 
             if match:
 
@@ -146,6 +147,7 @@ class Find(QtWidgets.QDialog):
             self.find()
 
     def moveCursor(self,start,end):
+        print("start:{} end:{}".format(start, end))
 
         # We retrieve the QTextCursor object from the parent's QTextEdit
         cursor = self.parent.text.textCursor()

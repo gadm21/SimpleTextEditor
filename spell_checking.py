@@ -50,8 +50,7 @@ class SpellChecker(object):
                {word} 
 
     def check(self, word) :
-        if word in self.real_words :
-            return True, word 
+        if word in self.real_words : return True, word 
         
         return False, self.suggestions(word) 
 
