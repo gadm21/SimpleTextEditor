@@ -308,10 +308,7 @@ class Main(QtWidgets.QMainWindow):
                 
             flag, suggestions= self.spell_checker.check(word) 
             suggestions = list(suggestions) 
-            if not flag :
-                print("{} is wrong".format(word))
-                wrong_words_positions.append((current_pos, len(word)))
-                print('wrong word current pos:{}'.format(current_pos))
+            if not flag : wrong_words_positions.append((current_pos, len(word)))
             self.checked_words.append(word)     
             current_pos += len(word) + 1
             

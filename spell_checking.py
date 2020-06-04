@@ -38,6 +38,7 @@ class SpellChecker(object):
         transposes = [a + b[1] + b[0] + b[2:] for a, b in splits if len(b)>1]
         replaces   = [a + c + b[1:] for a, b in splits for c in self.alphabet if b]
         inserts    = [a + c + b for a, b in splits for c in self.alphabet]
+        print("splits:{} \n\n deletes:{} \n\n transposes:{} \n\n replaces:{} \n\n inserts:{} \n\n".format(splits, deletes, transposes, replaces, inserts))
         return set(deletes + transposes + replaces + inserts)
 
     def variants2(self, word):
@@ -61,14 +62,5 @@ if __name__ == "__main__":
     
     spell_checker = SpellChecker('data/big.txt') 
     
-    word = 'NLP'
-
-    variants1 = spell_checker.variants1(word)
-    variants2 = spell_checker.variants2(word) 
-    flag, suggesions = spell_checker.check(word)
-
-    print('number of edit 1 distance variants is {} \n they are {} \n\n'.format(len(variants1), list(variants1)[:50]))
-    print('number of edit 1 distance variants is {} \n they are {} \n\n'.format(len(variants2), list(variants2)[:50]))
     
-    print("flag:", flag)
-    print("number of suggesions {}, they are {}".format(len(suggesions), suggesions))
+    
