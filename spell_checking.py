@@ -38,7 +38,7 @@ class SpellChecker(object):
         transposes = [a + b[1] + b[0] + b[2:] for a, b in splits if len(b)>1]
         replaces   = [a + c + b[1:] for a, b in splits for c in self.alphabet if b]
         inserts    = [a + c + b for a, b in splits for c in self.alphabet]
-        print("splits:{} \n\n deletes:{} \n\n transposes:{} \n\n replaces:{} \n\n inserts:{} \n\n".format(splits, deletes, transposes, replaces, inserts))
+        #print("splits:{} \n\n deletes:{} \n\n transposes:{} \n\n replaces:{} \n\n inserts:{} \n\n".format(splits, deletes, transposes, replaces, inserts))
         return set(deletes + transposes + replaces + inserts)
 
     def variants2(self, word):
@@ -50,7 +50,14 @@ class SpellChecker(object):
                self.variants2(word) & self.real_words or \
                {word} 
 
+    def tolerate_punctuation(self, word):
+        if not len(word): return word 
+        if word[-1] == ',' or word[-1] == '.' : return word[:-1] 
+        if word[0] == ',' or word[0] == '.' : return word[1:] 
+        return word
+
     def check(self, word) :
+        word = self.tolerate_punctuation(word)
         if word in self.real_words : return True, word 
         
         return False, self.suggestions(word) 
